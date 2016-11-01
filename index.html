@@ -8,8 +8,7 @@
         <link rel="stylesheet" href="css/styles.css">
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
         <script src="js/knockout-3.4.0.js"></script>
-        <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAibsRv1ULBeYVGyueDqUgyJ85ixOmin84&callback=initMap" async defer></script>
-        <script src="js/map.js"></script>
+        <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAibsRv1ULBeYVGyueDqUgyJ85ixOmin84" async defer></script>
         <script src="js/scripts.js"></script>
         <title>Neighbourhood Map</title>
     </head>
@@ -18,7 +17,15 @@
             <header>
             </header>
             <main>
+                <form action="#">
+                    Filter: <input data-bind="textInput: filterText" placeholder="Filter the list" />
+                </form>
                 <div id="map" style="height:600px"></div>
+                <div data-bind="foreach: filteredPlaces">
+                    <div>
+                        <h2 data-bind="text: title"></h2>
+                    </div>
+                </div>
             </main>
         </div>
     </body>
