@@ -2,7 +2,9 @@ $(document).ready(function(){
 
   function Place(data) {
     this.title = data.title;
+    this.id = data.id;
     this.position = data.position;
+    this.categories = ko.observableArray([]);
     this.reviews = ko.observableArray([]);
     this.marker = new google.maps.Marker({
           position: this.position,
@@ -12,11 +14,11 @@ $(document).ready(function(){
 
   function getDefaultPlaces() {
     return [
-      new Place({title: "Phnom Penh Restaurant", position: {lat: 49.278360, lng: -123.098231}}),
-      new Place({title: "Guu Japanese Restaurant", position: {lat: 49.284005, lng: -123.125435}}),
-      new Place({title: "Rodney's Oyster House", position: {lat: 49.274307, lng: -123.123136}}),
-      new Place({title: "Landmark Hot Pot House", position: {lat: 49.249836, lng: -123.115540}}),
-      new Place({title: "Granville Island Brewing", position: {lat: 49.270616, lng: -123.135774}})
+      new Place({title: "Phnom Penh", id: "phnom-penh-vancouver", position: {lat: 49.278360, lng: -123.098231}}),
+      new Place({title: "Guu Original Thurlow", id: "guu-original-thurlow-vancouver", position: {lat: 49.284005, lng: -123.125435}}),
+      new Place({title: "Rodney's Oyster House", id: "rodneys-oyster-house-vancouver", position: {lat: 49.274307, lng: -123.123136}}),
+      new Place({title: "Landmark Hot Pot House", id: "landmark-hotpot-house-vancouver", position: {lat: 49.249836, lng: -123.115540}}),
+      new Place({title: "Granville Island Brewing", id: "granville-island-brewing-vancouver", position: {lat: 49.270616, lng: -123.135774}})
     ];
   }
 
@@ -51,12 +53,6 @@ $(document).ready(function(){
     return {lat: (latMin+latMax)/2, lng: (lngMin+lngMax)/2}
   }
 
-  function setMapOnPlaces(places,map) {
-    for (var i=0;i<places.length;i++) {
-          places[i].marker.setMap(map);
-    }
-  }
-
   function passFilter(place, filter) {
     if(1>filter.trim().length)
       return true;
@@ -74,45 +70,36 @@ $(document).ready(function(){
   function RecommendationViewModel() {
     var self = this;
     this.places = ko.observableArray(getDefaultPlaces());
+    var center = getCenter(this.places)
+    this.map = initMap(center);
     this.filterText = ko.observable("")
+    this.displayedPlace = ko.observable(null);
     this.filteredPlaces = ko.computed(function() {
       var filtered = [];
       for(var i=0;i<self.places().length;i++) {
             if(passFilter(self.places()[i],self.filterText())) {
               filtered.push(self.places()[i]);
+              self.places()[i].marker.setMap(self.map);
+            }
+            else {
+              self.places()[i].marker.setMap(null);
             }
       }
       return filtered;
     });
 
-    var center = getCenter(this.filteredPlaces())
 
-    this.map = initMap(center);
-
-
-    setMapOnPlaces(this.places(),null);
-    setMapOnPlaces(this.filteredPlaces(),this.map);
-    /*
-    this.filterPlaces = function (newFilter) {
-      var filters = newFilter.split(" ")
-      console.log(filters);
-      console.log(self.places)
-      console.log(self.filteredPlaces())
-      console.log(self)
-      for(var i=0;i<self.places.length;i++) {
-        console.log(self.places[i])
-        for(var j=0;j<filters.length;j++) {
-          if(-1 < self.places[i].title.indexOf(filters[j])) {
-            console.log(self.places[i])
-            self.filteredPlaces.push(self.places[i]);
-            break;
-          }
-        }
+    this.clickListItem = function() {
+      if(self.displayedPlace())
+        self.displayedPlace().marker.setAnimation(null);
+      if(self.displayedPlace() == this) {
+        self.displayedPlace(null);
+        return;
       }
-    };
-
-    this.filterText.subscribe(this.filterPlaces,this);
-    */
+      self.map.panTo(this.position);
+      this.marker.setAnimation(google.maps.Animation.BOUNCE);
+      self.displayedPlace(this)
+    }
   }
 
   ko.applyBindings(new RecommendationViewModel())
