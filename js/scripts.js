@@ -1,15 +1,32 @@
 $(document).ready(function(){
 
   function Place(data) {
-    this.title = data.title;
+    var self = this
+    this.title = ko.observable(data.title);
     this.id = data.id;
-    this.position = data.position;
+    this.position = ko.observable();
     this.categories = ko.observableArray([]);
-    this.reviews = ko.observableArray([]);
-    this.marker = new google.maps.Marker({
-          position: this.position,
-          title: this.title
+    this.review = ko.observable();
+    this.address = ko.observableArray([]);
+    this.url = ko.computed(function(){
+      return "http://www.yelp.com/biz/" + self.id;
     });
+    this.rating = ko.observable();
+    this.phone = ko.observable()
+    this.marker = new google.maps.Marker({
+          position: this.position(),
+          title: this.title()
+    });
+
+    this.updateMarkerPosition = function () {
+      this.marker.setPosition(this.position())
+    }
+    this.position.subscribe(this.updateMarkerPosition,this)
+    if(data.position) {
+      this.position(data.position);
+    }
+
+
   }
 
   function getDefaultPlaces() {
@@ -17,7 +34,7 @@ $(document).ready(function(){
       new Place({title: "Phnom Penh", id: "phnom-penh-vancouver", position: {lat: 49.278360, lng: -123.098231}}),
       new Place({title: "Guu Original Thurlow", id: "guu-original-thurlow-vancouver", position: {lat: 49.284005, lng: -123.125435}}),
       new Place({title: "Rodney's Oyster House", id: "rodneys-oyster-house-vancouver", position: {lat: 49.274307, lng: -123.123136}}),
-      new Place({title: "Landmark Hot Pot House", id: "landmark-hotpot-house-vancouver", position: {lat: 49.249836, lng: -123.115540}}),
+      new Place({title: "Landmark Hotpot House", id: "landmark-hotpot-house-vancouver", position: {lat: 49.249836, lng: -123.115540}}),
       new Place({title: "Granville Island Brewing", id: "granville-island-brewing-vancouver", position: {lat: 49.270616, lng: -123.135774}})
     ];
   }
@@ -61,7 +78,7 @@ $(document).ready(function(){
       filter = filters[j];
       if(1>filter.length)
         continue;
-      if(-1==place.title.toLowerCase().indexOf(filter.toLowerCase()))
+      if(-1==place.title().toLowerCase().indexOf(filter.toLowerCase()))
         return false;
     }
     return true;
@@ -69,6 +86,26 @@ $(document).ready(function(){
 
   function RecommendationViewModel() {
     var self = this;
+    
+    this.onClickMarker = function(place) {
+      return function() {
+        self.onClickListItem(place);
+      }
+    };
+
+    this.onClickListItem = function(place) {
+      if(self.displayedPlace())
+        self.displayedPlace().marker.setAnimation(null);
+      if(self.displayedPlace() == place) {
+        self.displayedPlace(null);
+        return;
+      }
+      self.map.panTo(place.position());
+      place.marker.setAnimation(google.maps.Animation.BOUNCE);
+      self.displayedPlace(place)
+      yelpGet(place)
+    }
+
     this.places = ko.observableArray(getDefaultPlaces());
     var center = getCenter(this.places)
     this.map = initMap(center);
@@ -76,30 +113,21 @@ $(document).ready(function(){
     this.displayedPlace = ko.observable(null);
     this.filteredPlaces = ko.computed(function() {
       var filtered = [];
+      self.displayedPlace(null)
       for(var i=0;i<self.places().length;i++) {
-            if(passFilter(self.places()[i],self.filterText())) {
-              filtered.push(self.places()[i]);
-              self.places()[i].marker.setMap(self.map);
+            place = self.places()[i]
+            if(passFilter(place,self.filterText())) {
+              filtered.push(place);
+              place.marker.setMap(self.map);
+              place.marker.addListener('click', self.onClickMarker(place))
             }
             else {
-              self.places()[i].marker.setMap(null);
+              place.marker.setMap(null);
             }
       }
       return filtered;
     });
 
-
-    this.clickListItem = function() {
-      if(self.displayedPlace())
-        self.displayedPlace().marker.setAnimation(null);
-      if(self.displayedPlace() == this) {
-        self.displayedPlace(null);
-        return;
-      }
-      self.map.panTo(this.position);
-      this.marker.setAnimation(google.maps.Animation.BOUNCE);
-      self.displayedPlace(this)
-    }
   }
 
   ko.applyBindings(new RecommendationViewModel())

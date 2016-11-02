@@ -13,6 +13,7 @@ function generateNonce() {
     return result;
 
 }
+
 function getSignature(id) {
     var httpMethod = 'GET',
     yelp_url = 'https://api.yelp.com/v2/business/' + id,
@@ -32,10 +33,8 @@ function getSignature(id) {
 
 }
 
-asdf = getSignature('asdf');
-
-function yelpGet(id) {
-    var url = 'https://api.yelp.com/v2/business/' + id;
+function yelpGet(place) {
+    var url = 'https://api.yelp.com/v2/business/' + place.id;
     var httpMethod = 'GET';
     var parameters = {
         oauth_consumer_key : _consumer_key,
@@ -54,6 +53,17 @@ function yelpGet(id) {
         cache: true,
         dataType: 'jsonp',
         success: function(results) {
+            var categories = results.categories.map(function(x){return x[0];});
+            place.categories(categories)
+            place.title(results.name)
+            place.review(results.snippet_text);
+            place.address(results.location.display_address);
+            place.phone(results.display_phone);
+            place.rating(results.rating);    
+            place.position({
+                lat: results.location.coordinate.latitude,
+                lng: results.location.coordinate.longitude
+            });
             return results;
         },
         fail: function() {
@@ -62,4 +72,3 @@ function yelpGet(id) {
     }
     $.ajax(settings);
 }
-yelpGet('phnom-penh-vancouver');
