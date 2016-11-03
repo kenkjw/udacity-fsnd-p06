@@ -1,6 +1,8 @@
 /**
- * @fileoverview Description of file, its uses and information
- * about its dependencies.
+ * @fileoverview Knockout JS application for displaying a list of
+ * Yelp businesses data and displaying the locations on a Google map.
+ *
+ * Requires the Google Map API and the accompanying yelp.js for Yelp API calls.
  */
 
 /**

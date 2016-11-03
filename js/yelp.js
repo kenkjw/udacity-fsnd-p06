@@ -1,4 +1,11 @@
 /**
+ * @fileoverview Contains methods for accessing Yelp's API business endpoint.
+ *
+ * Requires Jquery and OAuth 1.0 signature library found at:
+ * https://github.com/bettiolo/oauth-signature-js
+ */
+
+/**
  * Constants required for Yelp's API authentication.
  */
 var _CONSUMER_KEY = 'QXzwe4kuZzzFix0KCe7j-Q',
