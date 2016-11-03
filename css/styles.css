@@ -1,0 +1,12 @@
+body {
+    margin-bottom: 60px;
+}
+
+#map {
+    height: 50vh;
+    padding: 0;
+}
+
+.hidden {
+    display: none;
+}

@@ -22,8 +22,8 @@
             <header>
             </header>
             <main class="row">
-                <div class="col-md-9" id="map" style="height:50vh"></div>
-                <div class="col-md-3">
+                <div class="col-md-12" id="map"></div>
+                <div class="col-md-4">
                     <div class="input-group">
                         <span class="input-group-addon">Filter: </span>
                         <input class="form-control" data-bind="textInput: filterText" placeholder="List filter" />
@@ -32,20 +32,27 @@
                         <a class="list-group-item" data-bind="text: title, click: $parent.onClickListItem"></a>
                     </div>
                 </div>
-                <div class="col-md-12">
-                    <div data-bind="visible: displayedPlace, with: displayedPlace">
-                        <a data-bind="attr: { href: url }"><h2 data-bind="text: title"></h2></a>
-                        <ul class="list-inline" data-bind="foreach: categories">
-                            <li data-bind="text: $data"></li>
-                        </ul>
-                        <ul class="list-unstyled">
-                            <!-- ko foreach: address -->
-                            <li data-bind="text: $data"></li>
-                            <!-- /ko -->
-                            <li data-bind="text: phone"></li>
-                        </ul>
-                        <p data-bind="text: review"></p>
-                        <p data-bind="visible: rating">Rating: <span data-bind="text: rating"></span></p>
+                <div class="col-md-8">
+                    <div class="hidden" data-bind="visible: displayedPlace, with: displayedPlace, css: { hidden: false }">
+                        <a href="#" data-bind="attr: { href: url }"><h2 data-bind="text: title"></h2></a>
+                        <div data-bind="visible: hasApiData()">
+                            <img data-bind="attr: { src: rating_img, alt: 'Restaurant Star Rating: ' + rating() }">
+                            <ul class="list-inline text-muted" data-bind="foreach: categories">
+                                <li data-bind="text: $data"></li>
+                            </ul>
+                            <ul class="list-unstyled">
+                                <!-- ko foreach: address -->
+                                <li data-bind="text: $data"></li>
+                                <!-- /ko -->
+                                <li data-bind="text: phone"></li>
+                            </ul>
+                            <p data-bind="text: review"></p>
+                            <span class="text-muted">Business information and reviews powered by <a href="http://www.yelp.com/">Yelp</a>.</span>
+                        </div>
+                        <div data-bind="visible: !hasApiData()">
+                            <span data-bind="visible: !hasApiError()">Loading API data.</span>
+                            <span data-bind="visible: hasApiError()">There was an error retrieving the business information.</span>
+                        </div>
                     </div>
                 </div>
             </main>

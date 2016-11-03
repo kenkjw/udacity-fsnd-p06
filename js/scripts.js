@@ -2,33 +2,39 @@ $(document).ready(function(){
 
   function Place(data) {
     var self = this
-    this.title = ko.observable(data.title);
     this.id = data.id;
+    this.title = ko.observable(data.title);
     this.position = ko.observable();
-    this.categories = ko.observableArray([]);
+    this.categories = ko.observable();
     this.review = ko.observable();
-    this.address = ko.observableArray([]);
+    this.address = ko.observable();
     this.url = ko.computed(function(){
       return "http://www.yelp.com/biz/" + self.id;
     });
     this.rating = ko.observable();
-    this.phone = ko.observable()
+    this.rating_img = ko.observable();
+    this.phone = ko.observable();
+    this.hasApiData = ko.observable(false);
+    this.hasApiError = ko.observable(false);
     this.marker = new google.maps.Marker({
           position: this.position(),
           title: this.title()
     });
 
-    this.updateMarkerPosition = function () {
+    this._updateMarkerPosition = function () {
       this.marker.setPosition(this.position())
     }
-    this.position.subscribe(this.updateMarkerPosition,this)
+    this.position.subscribe(this._updateMarkerPosition,this)
     if(data.position) {
       this.position(data.position);
     }
 
-
   }
 
+  /**
+   * Creates a list of hard-coded Places
+   *
+   */
   function getDefaultPlaces() {
     return [
       new Place({title: "Phnom Penh", id: "phnom-penh-vancouver", position: {lat: 49.278360, lng: -123.098231}}),
@@ -76,9 +82,12 @@ $(document).ready(function(){
     var filters = filter.trim().split(" ");
     for(var j=0;j<filters.length;j++) {
       filter = filters[j];
+      pass = false;
       if(1>filter.length)
         continue;
-      if(-1==place.title().toLowerCase().indexOf(filter.toLowerCase()))
+      if(-1 < place.title().toLowerCase().indexOf(filter.toLowerCase()))
+        pass = true;
+      if(!pass)
         return false;
     }
     return true;
@@ -86,7 +95,7 @@ $(document).ready(function(){
 
   function RecommendationViewModel() {
     var self = this;
-    
+
     this.onClickMarker = function(place) {
       return function() {
         self.onClickListItem(place);
@@ -103,7 +112,11 @@ $(document).ready(function(){
       self.map.panTo(place.position());
       place.marker.setAnimation(google.maps.Animation.BOUNCE);
       self.displayedPlace(place)
-      yelpGet(place)
+      yelpApiBusinessGet(place)
+    }
+
+    this.addLocation = function() {
+      self.newLocation("")
     }
 
     this.places = ko.observableArray(getDefaultPlaces());
@@ -111,6 +124,7 @@ $(document).ready(function(){
     this.map = initMap(center);
     this.filterText = ko.observable("")
     this.displayedPlace = ko.observable(null);
+    this.newLocation = ko.observable()
     this.filteredPlaces = ko.computed(function() {
       var filtered = [];
       self.displayedPlace(null)
@@ -127,6 +141,10 @@ $(document).ready(function(){
       }
       return filtered;
     });
+
+    for(var i=0;i<this.places().length;i++) {
+      yelpApiBusinessGet(this.places()[i]);
+    }
 
   }
 

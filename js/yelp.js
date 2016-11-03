@@ -33,7 +33,7 @@ function getSignature(id) {
 
 }
 
-function yelpGet(place) {
+function yelpApiBusinessGet(place) {
     var url = 'https://api.yelp.com/v2/business/' + place.id;
     var httpMethod = 'GET';
     var parameters = {
@@ -50,6 +50,7 @@ function yelpGet(place) {
     var settings = {
         url: url,
         data: parameters,
+        timeout: 3000,
         cache: true,
         dataType: 'jsonp',
         success: function(results) {
@@ -59,15 +60,16 @@ function yelpGet(place) {
             place.review(results.snippet_text);
             place.address(results.location.display_address);
             place.phone(results.display_phone);
-            place.rating(results.rating);    
+            place.rating(results.rating);
+            place.rating_img(results.rating_img_url);    
             place.position({
                 lat: results.location.coordinate.latitude,
                 lng: results.location.coordinate.longitude
             });
-            return results;
+            place.hasApiData(true);
         },
-        fail: function() {
-            alert('error');
+        error: function(a,b,c) {
+            place.hasApiError(true);
         }
     }
     $.ajax(settings);
