@@ -14,7 +14,7 @@
         <script src="js/libs/cryptojs/enc-base64-min.js"></script>
         <script src="js/libs/oauth-signature.js"></script>
         <script src="js/yelp.js"></script>
-        <script src="js/scripts.js"></script>
+        <script src="js/scripts.js" defer></script>
         <title>Neighbourhood Map</title>
     </head>
     <body>
@@ -29,7 +29,7 @@
                         <input class="form-control" data-bind="textInput: filterText" placeholder="List filter" />
                     </div>
                     <div class="list-group" data-bind="foreach: filteredPlaces">
-                        <a class="list-group-item" data-bind="text: title, click: $parent.onClickListItem"></a>
+                        <a class="list-group-item" data-bind="text: title, click: $parent.onClickListItem, css: { active: $parent.displayedPlace() == $rawData }"></a>
                     </div>
                 </div>
                 <div class="col-md-8">
