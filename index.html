@@ -6,15 +6,6 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
         <link rel="stylesheet" href="css/styles.css">
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-        <script src="js/libs/knockout-3.4.0.js"></script>
-        <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAibsRv1ULBeYVGyueDqUgyJ85ixOmin84" async defer></script>
-        <script src="js/libs/url.min.js"></script>
-        <script src="js/libs/cryptojs/hmac-sha1.js"></script>
-        <script src="js/libs/cryptojs/enc-base64-min.js"></script>
-        <script src="js/libs/oauth-signature.js"></script>
-        <script src="js/yelp.js"></script>
-        <script src="js/scripts.js" defer></script>
         <title>Neighbourhood Map</title>
     </head>
     <body>
@@ -23,10 +14,10 @@
             </header>
             <main class="row">
                 <div class="col-md-12" id="map"></div>
-                <div class="col-md-4">
+                <div class="col-md-4 hidden" data-bind="css: { hidden: false }">
                     <div class="input-group">
                         <span class="input-group-addon">Filter: </span>
-                        <input class="form-control" data-bind="textInput: filterText" placeholder="List filter" />
+                        <input class="form-control" data-bind="textInput: filterText" placeholder="List filter">
                     </div>
                     <div class="list-group" data-bind="foreach: filteredPlaces">
                         <a class="list-group-item" data-bind="text: title, click: $parent.onClickListItem, css: { active: $parent.displayedPlace() == $rawData }"></a>
@@ -36,7 +27,7 @@
                     <div class="hidden" data-bind="visible: displayedPlace, with: displayedPlace, css: { hidden: false }">
                         <a href="#" data-bind="attr: { href: url }"><h2 data-bind="text: title"></h2></a>
                         <div data-bind="visible: hasApiData()">
-                            <img data-bind="attr: { src: rating_img, alt: 'Restaurant Star Rating: ' + rating() }">
+                            <img data-bind="attr: { src: ratingImg, alt: 'Restaurant Star Rating: ' + rating() }">
                             <ul class="list-inline text-muted" data-bind="foreach: categories">
                                 <li data-bind="text: $data"></li>
                             </ul>
@@ -57,5 +48,14 @@
                 </div>
             </main>
         </div>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+        <script src="js/libs/knockout-3.4.0.js"></script>
+        <script src="https://maps.googleapis.csom/maps/api/js?key=AIzaSyAibsRv1ULBeYVGyueDqUgyJ85ixOmin84&callback=onMapLoad" onload="mapLoaded=true" defer></script>
+        <script src="js/libs/url.min.js"></script>
+        <script src="js/libs/cryptojs/hmac-sha1.js"></script>
+        <script src="js/libs/cryptojs/enc-base64-min.js"></script>
+        <script src="js/libs/oauth-signature.js"></script>
+        <script src="js/yelp.js"></script>
+        <script src="js/scripts.js"></script>
     </body>
 </html>

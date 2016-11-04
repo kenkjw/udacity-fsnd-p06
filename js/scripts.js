@@ -12,6 +12,81 @@
  */
 
 /**
+ * A wrapper class for the Google Maps Marker class.
+ * Should provide functionality if Google Maps fails to load.
+ * Currently does nothing if google maps not loaded.
+ *
+ * @constructor
+ * @param {Object} params Parameters to initiate the marker.
+ * @param {Coordinates} params.position Coordinates for the marker.
+ * @param {sstring} params.title A title for the marker
+ */
+function Marker(params) {
+  this.position = params.position;
+  this.title = params.title;
+  this._marker = null;
+  if(typeof google !== 'undefined') {
+    this._marker = new google.maps.Marker({
+        position: this.position,
+        title: this.title
+    });
+  }
+
+  this.setPosition = function(position) {
+    if(this._marker)
+      this._marker.setPosition(position);
+  };
+
+  this.setMap = function(map) {
+    if(this._marker)
+      this._marker.setMap(map);
+  };
+
+  this.animate = function(animate) {
+    if(this._marker) {
+      animate ?
+        this._marker.setAnimation(google.maps.Animation.BOUNCE) :
+        this._marker.setAnimation(null);
+    }
+  };
+
+  this.addListener = function(event,func) {
+    if(this._marker) {
+      this._marker.addListener(event,func);
+    }
+  };
+
+}
+
+
+function Map() {
+  this.panTo = function(position) {
+  };
+}
+
+/**
+ * Initiates the google map on element with id "map"
+ *
+ * @param {Coordinates} places List of places to center map around
+ * @return {Map|google.maps.Map} The map instantiated by Google Maps Api
+ *    or the empty class Map if Google Maps failed to load.
+ */
+ Map.initMap = function(places) {
+    if(typeof google === 'undefined') {
+      return new Map();
+    }
+
+    var bounds = new google.maps.LatLngBounds();
+    for(var i=0;i<places.length;i++) {
+      bounds.extend(places[i].position());
+    }
+    var map = new google.maps.Map(document.getElementById('map'), {
+      center: bounds.getCenter()
+    });
+    map.fitBounds(bounds);
+    return map;
+  };
+/**
  * Knockout model class representing a subset of a Yelp Business's data.
  * @class
  * @Constructor
@@ -21,7 +96,6 @@
  * @param {Coordinate} [data.position] The map coordinates of the business
  */
 function Place(data) {
-  var self = this;
 
   /**
    * Yelp ID for this business.
@@ -65,7 +139,7 @@ function Place(data) {
    * @type {string}
    */
   this.url = ko.computed(function(){
-    return "http://www.yelp.com/biz/" + self.id;
+    return 'http://www.yelp.com/biz/' + self.id;
   });
 
   /**
@@ -78,7 +152,7 @@ function Place(data) {
    * URL to star rating image for this business.
    * @type {string}
    */
-  this.rating_img = ko.observable();
+  this.ratingImg = ko.observable();
 
   /**
    * Phone number for this business formatted for display.
@@ -98,11 +172,7 @@ function Place(data) {
    */
   this.hasApiError = ko.observable(false);
 
-  /**
-   * Google Maps marker for this Place.
-   * @type {google.maps.Marker}
-   */
-  this.marker = new google.maps.Marker({
+  this.marker = new Marker({
         position: this.position(),
         title: this.title()
   });
@@ -113,6 +183,7 @@ function Place(data) {
   };
   //Subscribe the helper method to any changes to the Place's position.
   this.position.subscribe(this._updateMarkerPosition,this);
+
   //Initialize position to trigger marker location update.
   if(data.position) {
     this.position(data.position);
@@ -151,56 +222,7 @@ function getDefaultPlaces() {
   ];
 }
 
-/**
- * Initiates the google map on element with id "map"
- *
- * @param {Coordinates} center Coordinates to center map around
- * @return {google.maps.Map} The map instantiated by Google Maps Api
- */
-function initMap(center) {
-  return new google.maps.Map(document.getElementById('map'), {
-    center: center,
-    zoom: 12
-  });
-}
 
-/**
- * Calculates the center coordinates of a list of places.
- * Places beyond a threshold difference are ignored.
- *
- * @param {Array.Place} places Array of Places to calculate center of.
- *
- * @return {Coordinates} Coordinates to the center of the Places.
- */
-function getCenter(places) {
-  var latMin, latMax;
-  var lngMin, lngMax;
-  //Threshold difference for latitude/longitude values to differ from min/max
-  var threshold = 0.025;
-
-  //Return a default location if no places are given.
-  if(1 > places.length) {
-    return {lat: 49.277634, lng: -123.122264}
-  }
-
-  //Begin by centering map on first place.
-  latMin = latMax = places[0].position.lat;
-  lngMin = lngMax = places[0].position.lng;
-  for(var i=1;i<places.length;i++) {
-    var lat = places[i].position.lat;
-    var lng = places[i].position.lng;
-    //Check that coordinates are within threshold then update min/max
-    if(lat > latMax && lat < latMin + threshold)
-      latMax = lat;
-    if(lat < latMin && lat > latMax - threshold)
-      latMin = lat;
-    if(lng > lngMax && lng < lngMin + threshold)
-      lngMax = lng;
-    if(lng < lngMin && lng > lngMin - threshold)
-      lngMin = lng;
-  }
-  return {lat: (latMin+latMax)/2, lng: (lngMin+lngMax)/2}
-}
 
 /**
  * Check whether a Place satisfies a filter string.
@@ -216,7 +238,7 @@ function passFilter(place, filter) {
   if(1>filter.trim().length)
     return true;
   //Split the filter string into words.
-  var filters = filter.trim().split(" ");
+  var filters = filter.trim().split(' ');
   //Iterate through the filter words
   for(var j=0;j<filters.length;j++) {
     var f = filters[j];
@@ -250,14 +272,14 @@ function YelpViewModel() {
   this.onClickMarker = function(place) {
     return function() {
       self.onClickListItem(place);
-    }
+    };
   };
 
   //Listener for when a list item is clicked.
   this.onClickListItem = function(place) {
     //Stop previous selected Place animation
     if(self.displayedPlace())
-      self.displayedPlace().marker.setAnimation(null);
+      self.displayedPlace().marker.animate(false);
     //If selected Place is the same as previous Place, deselect Place.
     if(self.displayedPlace() == place) {
       self.displayedPlace(null);
@@ -265,37 +287,37 @@ function YelpViewModel() {
     }
     //Pan to map position and animate marker.
     self.map.panTo(place.position());
-    place.marker.setAnimation(google.maps.Animation.BOUNCE);
+    place.marker.animate(true);
     //Set place as currently selected Place.
-    self.displayedPlace(place)
+    self.displayedPlace(place);
     //Retrieve updated API data from Yelp.
-    yelpApi.getBusiness(place)
-  }
+    yelpApi.getBusiness(place);
+  };
 
   //Full list of yelp businesses
   this.places = ko.observableArray(getDefaultPlaces());
-  //Find the center
-  var center = getCenter(this.places)
-  this.map = initMap(center);
+  //Initiate the map.
+  this.map = Map.initMap(this.places());
+
   //The filter text string
-  this.filterText = ko.observable("")
+  this.filterText = ko.observable('');
   //The currently selected Place
   this.displayedPlace = ko.observable(null);
 
   //List of Places from this.places that pass the filter: this.filterText
   this.filteredPlaces = ko.computed(function() {
     var filtered = [];
-    self.displayedPlace(null)
+    self.displayedPlace(null);
     for(var i=0;i<self.places().length;i++) {
-          var place = self.places()[i]
-          if(passFilter(place,self.filterText())) {
-            filtered.push(place);
-            place.marker.setMap(self.map);
-            place.marker.addListener('click', self.onClickMarker(place))
-          }
-          else {
-            place.marker.setMap(null);
-          }
+      var place = self.places()[i];
+      if(passFilter(place,self.filterText())) {
+        filtered.push(place);
+        place.marker.setMap(self.map);
+        place.marker.addListener('click', self.onClickMarker(place));
+      }
+      else {
+        place.marker.setMap(null);
+      }
     }
     return filtered;
   });
@@ -306,5 +328,29 @@ function YelpViewModel() {
   }
 
 }
-//Apply knockout bindings
-ko.applyBindings(new YelpViewModel())
+
+function onMapLoad() {
+  //Check to see if google maps api loaded properly
+  if(typeof google !== 'undefined'){
+    mapLoaded = true;
+    //Apply knockout bindings
+    ko.applyBindings(new YelpViewModel());
+  }
+  else {
+    onMapError();
+  }
+}
+
+//Set a timeout for retrieving and loading google maps.
+var mapLoaded = false;
+setTimeout(function(){
+  if(!mapLoaded) {
+    onMapError();
+  }
+},1000);
+
+//If Google Map fails to load.
+function onMapError() {
+  $('#map').text('Oops! There was an error loading the map api.');
+  ko.applyBindings(new YelpViewModel());
+}

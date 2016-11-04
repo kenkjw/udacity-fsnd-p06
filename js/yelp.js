@@ -13,7 +13,7 @@ var _CONSUMER_KEY = 'QXzwe4kuZzzFix0KCe7j-Q',
     _CONSUMER_SECRET = 'NSq_TjXOYhcq4q5KW4p2igxN3SU',
     _TOKEN_SECRET = 'W-X_6POjlJaaoPM0HhdD8zFjV2s';
 
-var yelpApi = {}
+var yelpApi = {};
 
 /**
  * Generate a random string
@@ -51,7 +51,7 @@ yelpApi.getBusiness = function (place) {
         oauth_signature_method : 'HMAC-SHA1',
         oauth_version : '1.0',
         callback: 'cb'
-    }
+    };
     //Generate the signature required for Yelp's Oauth 1.0 authentication.
     var encodedSignature = oauthSignature.generate(
         httpMethod, url, parameters, _CONSUMER_SECRET, _TOKEN_SECRET);
@@ -68,13 +68,13 @@ yelpApi.getBusiness = function (place) {
             //Only need first index of categories array
             var categories = results.categories.map(function(x){return x[0];});
             //Store resulting data into place object
-            place.categories(categories)
-            place.title(results.name)
+            place.categories(categories);
+            place.title(results.name);
             place.review(results.snippet_text);
             place.address(results.location.display_address);
             place.phone(results.display_phone);
             place.rating(results.rating);
-            place.rating_img(results.rating_img_url);
+            place.ratingImg(results.rating_img_url);
             place.position({
                 lat: results.location.coordinate.latitude,
                 lng: results.location.coordinate.longitude
@@ -86,7 +86,7 @@ yelpApi.getBusiness = function (place) {
             //Mark place as having an error.
             place.hasApiError(true);
         }
-    }
+    };
     //Make the ajax call with jquery
     $.ajax(settings);
-}
+};
