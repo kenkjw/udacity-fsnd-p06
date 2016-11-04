@@ -341,14 +341,6 @@ function onMapLoad() {
   }
 }
 
-//Set a timeout for retrieving and loading google maps.
-var mapLoaded = false;
-setTimeout(function(){
-  if(!mapLoaded) {
-    onMapError();
-  }
-},1000);
-
 //If Google Map fails to load.
 function onMapError() {
   $('#map').text('Oops! There was an error loading the map api.');
